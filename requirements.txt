@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+streamlit
+ffmpeg-python
+faster-whisper
+googletrans==4.0.0-rc1
+edge-tts
+pydantic
+python-dotenv
+pyannote.audio
+demucs

@@ -1,0 +1,62 @@
+[
+  {
+    "segment_id": 1,
+    "start": 3.22,
+    "end": 11.98,
+    "duration": 8.76,
+    "source_text": "Father, all my life, I have answered every call to honor duty.",
+    "speaker": "SPEAKER_00",
+    "translated_text": "",
+    "tts_audio": "",
+    "tts_duration": null,
+    "status": "pending"
+  },
+  {
+    "segment_id": 2,
+    "start": 11.98,
+    "end": 32.58,
+    "duration": 20.599999999999998,
+    "source_text": "It's given me something I never sawed. A child, found out by the storm,",
+    "speaker": "SPEAKER_00",
+    "translated_text": "",
+    "tts_audio": "",
+    "tts_duration": null,
+    "status": "pending"
+  },
+  {
+    "segment_id": 3,
+    "start": 32.58,
+    "end": 44.3,
+    "duration": 11.719999999999999,
+    "source_text": "burned to be the strength of their whole fathers, so that I may fight once more, defeat one more enemy,",
+    "speaker": "SPEAKER_00",
+    "translated_text": "",
+    "tts_audio": "",
+    "tts_duration": null,
+    "status": "pending"
+  },
+  {
+    "segment_id": 4,
+    "start": 44.3,
+    "end": 53.02,
+    "duration": 8.720000000000006,
+    "source_text": "home to her, and not as a warrior, but as a warmth to teach our not-battle.",
+    "speaker": "SPEAKER_00",
+    "translated_text": "",
+    "tts_audio": "",
+    "tts_duration": null,
+    "status": "pending"
+  },
+  {
+    "segment_id": 5,
+    "start": 53.02,
+    "end": 59.03,
+    "duration": 6.009999999999998,
+    "source_text": "The kind I never knew, please find my words.",
+    "speaker": "SPEAKER_00",
+    "translated_text": "",
+    "tts_audio": "",
+    "tts_duration": null,
+    "status": "pending"
+  }
+]
