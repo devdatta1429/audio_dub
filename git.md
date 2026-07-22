@@ -1,69 +1,200 @@
-Now that your repository is connected to GitHub, every time you make changes locally, the workflow is simple.
+# GitHub Upload Guide
 
-1. Check what changed
-git status
+## First Time Upload
 
-2. Stage the changes
+### 1. Open Command Prompt
 
-To stage everything:
+```bash
+cd D:\10\proj\AudioDub
+```
 
+### 2. Initialize Git
+
+```bash
+git init
+```
+
+### 3. Add all files
+
+```bash
 git add .
+```
 
+### 4. Commit
 
-Or stage a specific file:
+```bash
+git commit -m "Initial commit"
+```
 
-git add path/to/file.py
+### 5. Rename branch to main
 
-3. Commit the changes
+```bash
+git branch -M main
+```
 
-Write a meaningful commit message:
+### 6. Add GitHub repository
 
+```bash
+git remote add origin https://github.com/<username>/<repository>.git
+```
+
+Example:
+
+```bash
+git remote add origin https://github.com/devdatta1429/audio_dub.git
+```
+
+### 7. Upload to GitHub
+
+```bash
+git push -u origin main
+```
+
+---
+
+# Second Time Upload (After Making Changes)
+
+## 1. Go to project folder
+
+```bash
+cd D:\10\proj\AudioDub
+```
+
+## 2. Check changed files
+
+```bash
+git status
+```
+
+## 3. Add changes
+
+```bash
+git add .
+```
+
+## 4. Commit
+
+```bash
+git commit -m "Describe your changes"
+```
+
+Example:
+
+```bash
+git commit -m "Added translation feature"
+```
+
+## 5. Upload to GitHub
+
+```bash
+git push
+```
+
+That's it.
+
+---
+
+# Third Time (After Restarting the PC)
+
+Restarting the PC does **NOT** affect your Git repository.
+
+## 1. Open Command Prompt
+
+```bash
+cd D:\10\proj\AudioDub
+```
+
+## 2. Make your code changes
+
+Save all files.
+
+## 3. Check changes
+
+```bash
+git status
+```
+
+## 4. Add files
+
+```bash
+git add .
+```
+
+## 5. Commit
+
+```bash
 git commit -m "Describe what you changed"
+```
 
+Example:
 
-Examples:
+```bash
+git commit -m "Fixed audio synchronization"
+```
 
-git commit -m "Add translation improvements"
-git commit -m "Fix Streamlit UI bug"
-git commit -m "Update audio alignment pipeline"
+## 6. Push to GitHub
 
-4. Push to GitHub
+```bash
 git push
+```
 
+---
 
-Since you've already set the upstream with git push -u origin main, you don't need to specify origin main again. Just git push is enough.
+# Daily Git Workflow
 
-Complete workflow
+```bash
+cd D:\10\proj\AudioDub
+
 git status
+
 git add .
+
 git commit -m "Your commit message"
+
 git push
+```
 
-If you only want to see what changed
-git diff
+---
 
+# Useful Commands
 
-Or see which files changed:
+### Show changed files
 
+```bash
 git status
+```
 
-If Git says "nothing to commit"
+### Show commit history
 
-It means either:
+```bash
+git log --oneline
+```
 
-You haven't modified any tracked files, or
-You forgot to save the files before committing.
-One recommendation for your repository
+### Download latest changes from GitHub
 
-Your first commit includes files under data/projects/ (videos, WAV files, outputs, etc.). Those can make the repository very large. If these are generated or temporary files, consider adding them to .gitignore so future commits don't keep uploading them.
+```bash
+git pull
+```
 
-For example:
+### Check remote repository
 
-data/projects/
-.venv/
-__pycache__/
-*.wav
-*.mp4
+```bash
+git remote -v
+```
 
+---
 
-If you want to keep only the source code on GitHub and exclude generated audio/video outputs going forward, I can help you clean up the repository without affecting your local files.
+# Notes
+
+- `git init` is used **only once**.
+- `git remote add origin ...` is used **only once**.
+- `git branch -M main` is used **only once**.
+- After the first upload, you only need:
+
+```bash
+git add .
+git commit -m "Your message"
+git push
+```
+
+Repeat these three commands whenever you want to upload new changes to GitHub.
