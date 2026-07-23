@@ -1,5 +1,6 @@
 # Virtual environment
 .venv/
+.venv-xtts/
 
 # Python cache
 __pycache__/
@@ -8,6 +9,14 @@ __pycache__/
 
 # Environment files
 .env
+
+# Generated project data
+data/projects/
+
+# Audio/video test files
+*.mp3
+*.wav
+*.mp4
 
 # IDE
 .vscode/

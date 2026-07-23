@@ -27,7 +27,14 @@ if uploaded_file is not None:
         st.selectbox("Target Language", ["Hindi"])
     with col2:
         st.selectbox("Text Source", ["Auto (Whisper)"])
-        st.selectbox("TTS Provider", ["Edge-TTS (Local)"])
+        tts_option = st.selectbox("TTS Provider", ["ElevenLabs (Premium)", "Local Voice Clone (XTTS)", "Edge-TTS (Local)"])
+        
+        if "ElevenLabs" in tts_option:
+            tts_provider = "elevenlabs"
+        elif "Local Voice Clone" in tts_option:
+            tts_provider = "local_clone"
+        else:
+            tts_provider = "edge-tts"
 
     if st.button("Start Dubbing", type="primary"):
         with st.spinner("Processing video... This may take a few minutes depending on the video length."):
@@ -38,7 +45,7 @@ if uploaded_file is not None:
             
             try:
                 pipeline = DubbingPipeline()
-                output_video_path = pipeline.run_phase_1(tmp_video_path)
+                output_video_path = pipeline.run_phase_1(tmp_video_path, tts_provider=tts_provider)
                 
                 st.success("Dubbing Complete!")
                 st.video(str(output_video_path))

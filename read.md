@@ -347,7 +347,6 @@ ffprobe -version
 Instead of discovering `ModuleNotFoundError` one package at a time, run:
 
 ```powershell
-python -c "import streamlit; print('Streamlit OK')"
 
 python -c "import fastapi; print('FastAPI OK')"
 
@@ -414,7 +413,8 @@ That tells Python to find a file literally named `run`, which is why you got:
 can't open file 'D:\10\proj\AudioDub\run'
 ```
 
-Also, don't run:
+Also, don't run:python -c "import streamlit; print('Streamlit OK')"
+
 
 ```powershell
 python streamlit_app.py
@@ -460,3 +460,26 @@ Full dubbing pipeline
 ```
 
 For the **current goal—getting one proper English → Hindi dubbed video working—the critical stack is FFmpeg + faster-whisper + googletrans + Edge-TTS + pydub + Streamlit**. Demucs and pyannote should not be allowed to complicate Phase 1 until that basic end-to-end flow works.
+
+
+
+
+
+
+-----------------------------------------------------------------------------------
+
+
+python -m pip install fastapi ffmpeg-python faster-whisper deep-translator edge-tts pydub python-dotenv demucs streamlit
+
+
+python -c "import fastapi; print('FastAPI OK')"
+python -c "import uvicorn; print('Uvicorn OK')"
+python -c "import ffmpeg; print('ffmpeg-python OK')"
+python -c "from faster_whisper import WhisperModel; print('faster-whisper OK')"
+python -c "from deep_translator import GoogleTranslator; print('deep-translator OK')"
+python -c "import edge_tts; print('Edge-TTS OK')"
+python -c "from pydub import AudioSegment; print('pydub OK')"
+python -c "from dotenv import load_dotenv; print('python-dotenv OK')"
+python -c "import demucs; print('Demucs OK')"
+python -c "import streamlit; print('Streamlit OK')"
+python -c "from TTS.api import TTS; print('XTTS OK')"

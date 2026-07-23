@@ -5,7 +5,9 @@ from services.file_service import FileService
 from services.ffmpeg_service import FFmpegService
 from pipeline.stages.transcriber import Transcriber
 from pipeline.stages.translator import TranslatorService
+from pipeline.stages.voice_selector import VoiceSelectionAgent
 from pipeline.stages.tts_generator import TTSGenerator
+from pipeline.stages.timing_optimizer import TimingOptimizer
 from pipeline.stages.audio_aligner import AudioAligner
 from pipeline.stages.source_separator import SourceSeparator
 
@@ -14,7 +16,7 @@ class DubbingPipeline:
         self.file_service = FileService(project_id)
         self.file_service.setup_project_directories()
         
-    def run_phase_1(self, video_path: Path):
+    def run_phase_1(self, video_path: Path, tts_provider: str = "elevenlabs"):
         """Runs the pipeline including Source Separation."""
         print(f"Starting pipeline for project {self.file_service.project_id}")
         
@@ -52,17 +54,29 @@ class DubbingPipeline:
         translator.translate_timeline(timeline_path, translated_timeline_path)
         print("Translation complete.")
         
+        # 4b. AI Voice Selection (Phase 4)
+        if tts_provider == "elevenlabs":
+            print("Analyzing original vocals for AI Voice Selection...")
+            voice_selector = VoiceSelectionAgent()
+            voice_selector.process_timeline(translated_timeline_path, final_vocals_path)
+            
         # 5. TTS Generator
-        tts_generator = TTSGenerator()
+        tts_generator = TTSGenerator(provider=tts_provider)
         tts_dir = self.file_service.dirs["tts"]
         tts_timeline_path = self.file_service.get_path("tts", "tts_timeline.json")
-        tts_generator.process_timeline(translated_timeline_path, tts_dir, tts_timeline_path)
+        tts_generator.process_timeline(translated_timeline_path, tts_dir, tts_timeline_path, vocals_path=final_vocals_path)
         print("TTS Generation complete.")
+        
+        # 5b. Timing Optimization (Output 8)
+        optimizer = TimingOptimizer()
+        optimized_timeline_path = self.file_service.get_path("tts", "optimized_timeline.json")
+        optimizer.optimize_timeline(tts_timeline_path, tts_dir, optimized_timeline_path)
+        print("Timing optimization complete.")
         
         # 6. Audio Aligner
         aligner = AudioAligner()
         hindi_dialogue_path = self.file_service.get_path("final_audio", "hindi_dialogue.wav")
-        aligner.create_dialogue_track(tts_timeline_path, tts_dir, hindi_dialogue_path)
+        aligner.create_dialogue_track(optimized_timeline_path, tts_dir, hindi_dialogue_path)
         print("Audio alignment complete.")
         
         # 7. Mix Audio (Background + Hindi Dialogue)
