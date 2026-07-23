@@ -20,10 +20,15 @@ class TimingOptimizer:
         optimized_dir.mkdir(exist_ok=True)
 
         for segment in timeline:
-            if not segment.get("tts_audio"):
-                continue
+            tts_info = segment.get("tts", {})
+            if not tts_info or not tts_info.get("audio"):
+                # Support legacy flat format if it exists
+                if not segment.get("tts_audio"):
+                    continue
+                audio_filename = segment["tts_audio"]
+            else:
+                audio_filename = tts_info["audio"]
 
-            audio_filename = segment["tts_audio"]
             audio_path = tts_dir / audio_filename
             
             original_duration = segment["duration"]
@@ -53,11 +58,18 @@ class TimingOptimizer:
                     str(optimized_path)
                 ]
                 subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-                segment["tts_audio"] = f"optimized/{optimized_filename}"
-                segment["tts_duration"] = FFmpegService.get_duration(optimized_path)
+                if "tts" in segment:
+                    segment["tts"]["audio"] = f"optimized/{optimized_filename}"
+                    segment["tts"]["duration"] = FFmpegService.get_duration(optimized_path)
+                else:
+                    segment["tts_audio"] = f"optimized/{optimized_filename}"
+                    segment["tts_duration"] = FFmpegService.get_duration(optimized_path)
             else:
                 # If it fits or is shorter, we just use the original TTS audio
-                segment["tts_duration"] = tts_duration
+                if "tts" in segment:
+                    segment["tts"]["duration"] = tts_duration
+                else:
+                    segment["tts_duration"] = tts_duration
 
             segment["status"] = "timing_optimized"
 

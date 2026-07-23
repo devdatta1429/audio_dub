@@ -29,13 +29,21 @@ class FFmpegService:
 
     @staticmethod
     def mix_audio(background_path: Path, dialogue_path: Path, output_path: Path):
-        """Mix background audio and dialogue audio together."""
-        # Simple mix: amix filter
+        """Mix background audio and dialogue audio with sidechain compression (ducking)."""
+        # [0:a] is background, [1:a] is dialogue
+        # sidechaincompress ducks [0:a] based on the volume of [1:a]
+        # Then we amix the ducked background with the original dialogue
+        filter_complex = (
+            "[0:a][1:a]sidechaincompress=threshold=0.05:ratio=4.0:attack=5:release=200[bg];"
+            "[bg][1:a]amix=inputs=2:duration=longest:dropout_transition=2[out]"
+        )
+        
         cmd = [
             "ffmpeg", "-y", 
             "-i", str(background_path), 
             "-i", str(dialogue_path),
-            "-filter_complex", "amix=inputs=2:duration=longest:dropout_transition=2",
+            "-filter_complex", filter_complex,
+            "-map", "[out]",
             str(output_path)
         ]
         subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)

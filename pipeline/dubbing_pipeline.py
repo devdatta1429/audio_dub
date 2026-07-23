@@ -5,7 +5,7 @@ from services.file_service import FileService
 from services.ffmpeg_service import FFmpegService
 from pipeline.stages.transcriber import Transcriber
 from pipeline.stages.translator import TranslatorService
-from pipeline.stages.voice_selector import VoiceSelectionAgent
+from pipeline.stages.reference_extractor import ReferenceExtractor
 from pipeline.stages.tts_generator import TTSGenerator
 from pipeline.stages.timing_optimizer import TimingOptimizer
 from pipeline.stages.audio_aligner import AudioAligner
@@ -48,17 +48,16 @@ class DubbingPipeline:
         transcriber.transcribe(final_vocals_path, timeline_path)
         print("Transcription complete.")
         
+        # 3b. Extract References & Analyze Gender
+        ref_extractor = ReferenceExtractor()
+        ref_dir = self.file_service.dirs["audio"] / "references"
+        ref_extractor.extract_references(timeline_path, final_vocals_path, ref_dir)
+        
         # 4. Translate
         translator = TranslatorService()
         translated_timeline_path = self.file_service.get_path("translation", "hindi_translation.json")
         translator.translate_timeline(timeline_path, translated_timeline_path)
         print("Translation complete.")
-        
-        # 4b. AI Voice Selection (Phase 4)
-        if tts_provider == "elevenlabs":
-            print("Analyzing original vocals for AI Voice Selection...")
-            voice_selector = VoiceSelectionAgent()
-            voice_selector.process_timeline(translated_timeline_path, final_vocals_path)
             
         # 5. TTS Generator
         tts_generator = TTSGenerator(provider=tts_provider)

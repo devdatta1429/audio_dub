@@ -100,20 +100,7 @@ class TTSGenerator:
         # ------------------------------------------------------
         
         elif self.provider == "local_clone":
-            print("Initializing Local Voice Clone (XTTSv2)...")
-            try:
-                # pyrefly: ignore [missing-import]
-                from TTS.api import TTS
-                # We load XTTSv2 which is capable of zero-shot voice cloning
-                self.local_tts = TTS("tts_models/multilingual/multi-dataset/xtts_v2").to("cpu")
-                print("Local Voice Clone model loaded successfully.")
-            except ImportError:
-                print("=====================================================")
-                print("ERROR: Coqui TTS is not installed or not supported on this Python version.")
-                print("Please downgrade to Python 3.11 and run: pip install TTS")
-                print("Falling back to Edge-TTS.")
-                print("=====================================================")
-                self.provider = "edge-tts"
+            print("Local Voice Clone (XTTSv2) initialized. Worker will be invoked per segment.")
 
         # ------------------------------------------------------
         # Validate provider
@@ -291,7 +278,7 @@ class TTSGenerator:
             )
 
     # ==========================================================
-    # LOCAL CLONE GENERATION
+    # LOCAL CLONE GENERATION (WORKER Subprocess)
     # ==========================================================
 
     def generate_segment_local_clone(
@@ -300,49 +287,40 @@ class TTSGenerator:
         output_path: Path,
         vocals_path: Path,
         start_time: float,
-        end_time: float
+        end_time: float,
+        voice_reference: str = None
     ):
         """
-        Generate cloned speech using a local model (XTTS).
-        Extracts a reference chunk from the vocals file.
+        Generate cloned speech using the external XTTS worker.
         """
-        if not hasattr(self, "local_tts"):
-            raise RuntimeError("Local TTS model is not loaded.")
+        if not voice_reference or not os.path.exists(voice_reference):
+            raise RuntimeError(f"Valid voice reference not found for local clone: {voice_reference}")
             
         # Ensure directory exists
         output_path.parent.mkdir(parents=True, exist_ok=True)
         
-        # 1. Extract reference audio
-        duration = end_time - start_time
-        if duration < 1.0:
-            # Need at least 1 second for reference, grab a slightly wider window if possible
-            duration = 2.0
-            
-        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as temp_ref:
-            ref_path = temp_ref.name
-            
         try:
+            # We must use the specific Python executable for the XTTS environment
+            worker_python = r".\.venv-xtts\Scripts\python.exe"
+            worker_script = "pipeline/stages/xtts_worker.py"
+            
+            print(f"Generating Local Clone TTS (Worker): {text[:60]}")
+            
             cmd = [
-                "ffmpeg", "-y", "-i", str(vocals_path),
-                "-ss", str(max(0, start_time - 0.5)), "-t", str(min(duration, 10.0)),
-                "-ac", "1", "-ar", "22050",
-                ref_path
+                worker_python, worker_script,
+                "--text", text,
+                "--reference", voice_reference,
+                "--output", str(output_path),
+                "--language", "hi"
             ]
-            subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             
-            print(f"Generating Local Clone TTS: {text[:60]}")
+            # Run the worker process
+            result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+            print(result.stdout)
             
-            # 2. Generate speech
-            self.local_tts.tts_to_file(
-                text=text,
-                speaker_wav=ref_path,
-                language="hi",
-                file_path=str(output_path)
-            )
-            
-        finally:
-            if os.path.exists(ref_path):
-                os.remove(ref_path)
+        except subprocess.CalledProcessError as e:
+            print(f"XTTS Worker failed with error: {e.stderr}")
+            raise RuntimeError(f"XTTS Worker failed: {e.stderr}")
 
     # ==========================================================
     # GENERATE SINGLE SEGMENT
@@ -355,7 +333,8 @@ class TTSGenerator:
         voice_id: str = None,
         vocals_path: Path = None,
         start_time: float = 0.0,
-        end_time: float = 0.0
+        end_time: float = 0.0,
+        voice_reference: str = None
     ):
         """
         Generate one TTS segment using the selected provider.
@@ -392,7 +371,8 @@ class TTSGenerator:
                     output_path=output_path,
                     vocals_path=vocals_path,
                     start_time=start_time,
-                    end_time=end_time
+                    end_time=end_time,
+                    voice_reference=voice_reference
                 )
                 return
             except Exception as e:
@@ -643,9 +623,10 @@ class TTSGenerator:
             )
 
             # --------------------------------------------------
-            # Get assigned voice ID
+            # Get assigned voice ID and reference
             # --------------------------------------------------
             assigned_voice_id = segment.get("elevenlabs_voice_id")
+            voice_reference = segment.get("voice_reference")
 
             # --------------------------------------------------
             # Generate speech
@@ -659,7 +640,8 @@ class TTSGenerator:
                     voice_id=assigned_voice_id,
                     vocals_path=vocals_path,
                     start_time=start_time,
-                    end_time=end_time
+                    end_time=end_time,
+                    voice_reference=voice_reference
                 )
 
                 # --------------------------------------------------
@@ -689,24 +671,16 @@ class TTSGenerator:
                 )
 
                 # --------------------------------------------------
-                # Update timeline
+                # Update timeline with new nested structure
                 # --------------------------------------------------
+                
+                if "tts" not in segment:
+                    segment["tts"] = {}
 
-                segment[
-                    "tts_audio"
-                ] = audio_filename
-
-                segment[
-                    "tts_duration"
-                ] = tts_duration
-
-                segment[
-                    "target_duration"
-                ] = target_duration
-
-                segment[
-                    "tts_provider"
-                ] = self.provider
+                segment["tts"]["audio"] = audio_filename
+                segment["tts"]["duration"] = tts_duration
+                segment["tts"]["target_duration"] = target_duration
+                segment["tts"]["provider"] = self.provider
 
                 segment[
                     "status"

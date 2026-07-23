@@ -22,7 +22,10 @@ class AudioAligner:
         delays = []
         mix_inputs = []
         
-        valid_segments = [s for s in timeline if s.get("tts_audio")]
+        valid_segments = []
+        for s in timeline:
+            if s.get("tts", {}).get("audio") or s.get("tts_audio"):
+                valid_segments.append(s)
         
         if not valid_segments:
             # Create a silent audio file if no dialogue
@@ -33,7 +36,8 @@ class AudioAligner:
             return output_audio_path
             
         for i, segment in enumerate(valid_segments):
-            audio_file = tts_dir / segment["tts_audio"]
+            audio_filename = segment.get("tts", {}).get("audio") or segment.get("tts_audio")
+            audio_file = tts_dir / audio_filename
             inputs.extend(["-i", str(audio_file)])
             
             # Start time in milliseconds
